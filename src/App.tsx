@@ -1,10 +1,11 @@
 import "./App.css";
+import { TextEditor } from "./components/TextEditor";
 
 function App() {
   return (
-    <>
-      <div className="text-3xl font-bold underline">Hello</div>
-    </>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <TextEditor />
+    </div>
   );
 }
 
