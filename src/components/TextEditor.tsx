@@ -1,10 +1,18 @@
-import { ChangeEvent, useState } from "react";
+import { RootState } from "../store"; // Import RootState type to strongly type the state selector
+import { ChangeEvent } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setContent } from "../store/notesSlice"; // Import the action to update the note content in Redux state
 
 export const TextEditor = () => {
-  const [content, setContent] = useState<string>("");
+  // Selector to fetch the current content from redux store
+  const content = useSelector((state: RootState) => state.notes.content);
+
+  // Dispatch function to trigger redux actions
+  const dispatch = useDispatch();
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(event.target.value);
+    // Dispatch the setContent action to update redux state
+    dispatch(setContent(event.target.value));
   };
 
   return (
