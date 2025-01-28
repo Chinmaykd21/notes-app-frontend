@@ -1,7 +1,10 @@
 import { RootState } from "../store"; // Import RootState type to strongly type the state selector
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setContent } from "../store/notesSlice"; // Import the action to update the note content in Redux state
+import { WebSocketService } from "../utils/websocket";
+
+const ws = new WebSocketService();
 
 export const TextEditor = () => {
   // Selector to fetch the current content from redux store
@@ -10,9 +13,27 @@ export const TextEditor = () => {
   // Dispatch function to trigger redux actions
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    ws.connect();
+    console.log("Websocket connected.");
+
+    ws.onMessage((data) => {
+      if (data.type === "update") {
+        dispatch(setContent(data.content));
+      }
+    });
+
+    return () => {
+      console.log("Websocket disconnected.");
+      ws.disconnect(); // send disconnect signal
+    };
+  }, [dispatch]);
+
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const updateContent = event.target.value;
     // Dispatch the setContent action to update redux state
-    dispatch(setContent(event.target.value));
+    dispatch(setContent(updateContent));
+    ws.send({ type: "update", content: updateContent }); // send updates to the websocket
   };
 
   return (
