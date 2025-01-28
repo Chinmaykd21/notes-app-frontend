@@ -15,7 +15,6 @@ export const TextEditor = () => {
 
   useEffect(() => {
     ws.connect();
-    console.log("Websocket connected.");
 
     ws.onMessage((data) => {
       if (data.type === "update") {
@@ -24,7 +23,6 @@ export const TextEditor = () => {
     });
 
     return () => {
-      console.log("Websocket disconnected.");
       ws.disconnect(); // send disconnect signal
     };
   }, [dispatch]);

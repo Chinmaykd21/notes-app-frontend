@@ -19,15 +19,15 @@ export class WebSocketService {
   connect(): void {
     if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
       this.socket = new WebSocket(this.url);
-      console.log("WebSocket connected");
+      // console.log("WebSocket connected");
     }
 
     this.socket.onopen = () => {
-      console.log("Websocket connected...");
+      console.log("Websocket connected.");
     };
 
     this.socket.onclose = () => {
-      console.log("Websocket disconnected...");
+      console.log("Websocket disconnected.");
     };
 
     this.socket.onerror = (error) => {
@@ -39,7 +39,7 @@ export class WebSocketService {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
-      console.log("WebSocket disconnected...");
+      // console.log("WebSocket disconnected.");
     }
   }
 
