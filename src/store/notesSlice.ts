@@ -7,10 +7,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface NotesState {
   content: string; // Type of state that defines editors content type
+  selectedText: string;
 }
 
 const initialState: NotesState = {
   content: "",
+  selectedText: "",
 };
 
 // Create a redux slice for "notes" feature
@@ -21,8 +23,11 @@ const notesSlice = createSlice({
     setContent(state, action: PayloadAction<string>) {
       state.content = action.payload; // Updates the "content" field with the new value from the action.
     },
+    setSelectedText(state, action) {
+      state.selectedText = action.payload;
+    },
   },
 });
 
-export const { setContent } = notesSlice.actions;
+export const { setContent, setSelectedText } = notesSlice.actions;
 export default notesSlice.reducer;
