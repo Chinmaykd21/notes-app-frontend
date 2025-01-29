@@ -3,8 +3,14 @@ import { ChangeEvent, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setContent } from "../store/notesSlice"; // Import the action to update the note content in Redux state
 import { WebSocketService } from "../utils/websocket";
+import { debounce } from "../utils/debounce";
 
 const ws = new WebSocketService();
+
+type Delta = {
+  position: number | null; // Cursor position (null if no selection)
+  text: string; // The new char typed
+};
 
 export const TextEditor = () => {
   // Selector to fetch the current content from redux store
@@ -18,7 +24,14 @@ export const TextEditor = () => {
 
     ws.onMessage((data) => {
       if (data.type === "update") {
-        dispatch(setContent(data.content));
+        console.log("🔄 Received WebSocket update:", data.content);
+
+        // ✅ Extract the text from the received object
+        const updatedText = data.content.updates
+          .map((update: { text: string }) => update.text)
+          .join("");
+
+        dispatch(setContent(updatedText));
       }
     });
 
@@ -27,11 +40,21 @@ export const TextEditor = () => {
     };
   }, [dispatch]);
 
+  const debouncedSend = debounce((delta: Delta) => {
+    ws.send({ type: "update", ...delta }); // send updates to the websocket
+  }, 300);
+
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const updateContent = event.target.value;
+
+    const delta: Delta = {
+      position: event.target.selectionStart, // Cursor position
+      text: updateContent.slice(-1), // only send the new character
+    };
+
     // Dispatch the setContent action to update redux state
     dispatch(setContent(updateContent));
-    ws.send({ type: "update", content: updateContent }); // send updates to the websocket
+    debouncedSend(delta);
   };
 
   return (
