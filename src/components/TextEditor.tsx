@@ -1,60 +1,20 @@
-import { RootState } from "../store"; // Import RootState type to strongly type the state selector
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setContent } from "../store/notesSlice"; // Import the action to update the note content in Redux state
-import { WebSocketService } from "../utils/websocket";
-import { debounce } from "../utils/debounce";
-
-const ws = new WebSocketService();
-
-type Delta = {
-  position: number | null; // Cursor position (null if no selection)
-  text: string; // The new char typed
-};
+import { RootState } from "../store";
 
 export const TextEditor = () => {
-  // Selector to fetch the current content from redux store
+  // Selector to fetch current content from Redux store
   const content = useSelector((state: RootState) => state.notes.content);
 
   // Dispatch function to trigger redux actions
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    ws.connect();
-
-    ws.onMessage((data) => {
-      if (data.type === "update") {
-        console.log("🔄 Received WebSocket update:", data.content);
-
-        // ✅ Extract the text from the received object
-        const updatedText = data.content.updates
-          .map((update: { text: string }) => update.text)
-          .join("");
-
-        dispatch(setContent(updatedText));
-      }
-    });
-
-    return () => {
-      ws.disconnect(); // send disconnect signal
-    };
-  }, [dispatch]);
-
-  const debouncedSend = debounce((delta: Delta) => {
-    ws.send({ type: "update", ...delta }); // send updates to the websocket
-  }, 300);
-
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const updateContent = event.target.value;
 
-    const delta: Delta = {
-      position: event.target.selectionStart, // Cursor position
-      text: updateContent.slice(-1), // only send the new character
-    };
-
     // Dispatch the setContent action to update redux state
     dispatch(setContent(updateContent));
-    debouncedSend(delta);
   };
 
   return (
