@@ -7,7 +7,7 @@ export const Sidebar = () => {
   const notes = useSelector((state: RootState) => state.notes.list);
   const activeNote = useSelector((state: RootState) => state.notes.activeNote);
   return (
-    <aside className="w-80 h-screen overflow-y-auto p-4 bg-blue-100">
+    <aside className="w-80 h-screen overflow-y-auto p-4">
       <div className="space-y-2">
         {notes.length === 0 && (
           <div className="flex justify-center">No Notes To Display</div>

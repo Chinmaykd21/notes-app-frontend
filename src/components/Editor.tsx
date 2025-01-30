@@ -62,7 +62,7 @@ export const Editor = () => {
           </div>
         </>
       ) : (
-        <div className="flex items-center justify-center h-full text-gray-400">
+        <div className="flex items-center justify-center h-full text-gray-400 text-3xl">
           Load or create a note to get started.
         </div>
       )}
