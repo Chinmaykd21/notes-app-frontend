@@ -80,6 +80,15 @@ const notesSlice = createSlice({
       state.activeNote =
         state.list.find((note) => note.id === action.payload) || null;
     },
+    setContent(
+      state,
+      action: PayloadAction<{ noteId: string; content: string }>
+    ) {
+      const note = state.list.find((n) => n.id === action.payload.noteId);
+      if (note) {
+        note.content = action.payload.content;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -107,5 +116,5 @@ const notesSlice = createSlice({
   },
 });
 
-export const { setActiveNote } = notesSlice.actions;
+export const { setContent, setActiveNote } = notesSlice.actions;
 export default notesSlice.reducer;
