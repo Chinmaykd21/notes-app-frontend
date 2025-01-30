@@ -3,7 +3,7 @@
  * e.g., "user", "settings"
  */
 import { configureStore } from "@reduxjs/toolkit";
-import notesReducer from "./notesSlice";
+import notesReducer from "./slices/notesSlice";
 
 const store = configureStore({
   reducer: {
