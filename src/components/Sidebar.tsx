@@ -1,7 +1,6 @@
-import { Note } from "../store/slices/notesSlice";
 import { FC, Dispatch, SetStateAction, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { useFetchNotes, useFetchNoteById } from "../api/graphqlClient";
+import { useFetchNotes, useFetchNoteById, Note } from "../api/graphqlClient";
 
 type SidebarProps = {
   activeNote: Note | null;

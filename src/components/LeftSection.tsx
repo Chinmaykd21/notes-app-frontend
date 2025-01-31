@@ -1,7 +1,7 @@
 import { useState, useEffect, FC, Dispatch, SetStateAction } from "react";
-import { Note } from "../store/slices/notesSlice";
 import toast, { Toaster } from "react-hot-toast";
 import {
+  Note,
   useCreateNote,
   useDeleteNote,
   useUpdateNote,

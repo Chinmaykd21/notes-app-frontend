@@ -2,7 +2,7 @@ import { LeftSection } from "./components/LeftSection";
 import { Navigation } from "./components/Navigation";
 import { useState } from "react";
 import { Sidebar } from "./components/Sidebar";
-import { Note } from "./store/slices/notesSlice";
+import { Note } from "./api/graphqlClient";
 
 function App() {
   const [activeNote, setActiveNote] = useState<Note | null>(null);
