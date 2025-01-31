@@ -1,7 +1,9 @@
 import { GraphQLClient, gql } from "graphql-request";
 import { Note } from "../store/slices/notesSlice";
 
-const client = new GraphQLClient("http://localhost:8000/graphql");
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const API_URL = `${BACKEND_URL}/graphql`;
+const client = new GraphQLClient(API_URL);
 
 // ✅ Ensure title is included in queries
 export const GET_NOTES = gql`
