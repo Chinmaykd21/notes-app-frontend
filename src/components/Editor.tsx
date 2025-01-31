@@ -2,14 +2,15 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editNote, removeNote } from "../store/slices/notesSlice";
 import { RootState, AppDispatch } from "../store";
+import toast, { Toaster } from "react-hot-toast";
 
 export const Editor = () => {
   const dispatch = useDispatch<AppDispatch>();
   const activeNote = useSelector((state: RootState) => state.notes.activeNote);
 
-  const [localTitle, setLocalTitle] = useState("");
-  const [localContent, setLocalContent] = useState("");
-  const [message, setMessage] = useState("");
+  const [localTitle, setLocalTitle] = useState<string>("");
+  const [localContent, setLocalContent] = useState<string>("");
+  const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeNote) {
@@ -28,6 +29,9 @@ export const Editor = () => {
 
   const handleUpdateNote = async () => {
     if (activeNote && localContent.trim()) {
+      setProcessing("update");
+      toast.loading("Updating note...", { id: "update" });
+
       try {
         await dispatch(
           editNote({
@@ -36,28 +40,36 @@ export const Editor = () => {
             content: localContent,
           })
         ).unwrap();
-        setMessage("Note updated successfully!");
+        toast.success("Note updated successfully!", { id: "update" });
       } catch (error) {
         console.error("Failed to update note. ", error);
-        setMessage("Failed to update note. Please try again.");
+        toast.error("Failed to update note. Please try again.");
+      } finally {
+        setProcessing(null);
       }
     }
   };
 
   const handleDeleteNote = async () => {
     if (activeNote) {
+      setProcessing("delete");
+      toast.loading("Deleting note...", { id: "delete" });
+
       try {
         await dispatch(removeNote(activeNote.id)).unwrap();
-        setMessage("Note deleted successfully!");
+        toast.success("Note deleted successfully!", { id: "delete" });
       } catch (error) {
         console.error("Failed to delete note. ", error);
-        setMessage("Failed to delete note. Please try again.");
+        toast.error("Failed to delete note. Please try again.");
+      } finally {
+        setProcessing(null);
       }
     }
   };
 
   return (
     <div className="flex-1 flex flex-col p-6">
+      <Toaster position="top-right" reverseOrder={false} />
       {activeNote ? (
         <>
           <input
@@ -74,20 +86,27 @@ export const Editor = () => {
           <div className="mt-4 flex gap-2">
             <button
               onClick={handleUpdateNote}
-              className="bg-yellow-500 text-white px-4 py-2 rounded"
+              className={`px-4 py-2 rounded ${
+                processing === "update"
+                  ? "bg-yellow-500 cursor-not-allowed"
+                  : "bg-yellow-400 hover:bg-yellow-500"
+              }`}
+              disabled={processing !== null}
             >
-              Update Note
+              {processing === "update" ? "Updating..." : "Update Note"}
             </button>
             <button
               onClick={handleDeleteNote}
-              className="bg-red-500 text-white px-4 py-2 rounded"
+              className={`px-4 py-2 rounded ${
+                processing === "delete"
+                  ? "bg-red-500 cursor-not-allowed"
+                  : "bg-red-400 hover:bg-red-500"
+              }`}
+              disabled={processing !== null}
             >
-              Delete Note
+              {processing === "delete" ? "Deleting..." : "Delete Note"}
             </button>
           </div>
-          {message && (
-            <p className="mt-2 text-center text-green-600">{message}</p>
-          )}
         </>
       ) : (
         <div className="flex items-center justify-center h-full text-gray-400 text-3xl">
