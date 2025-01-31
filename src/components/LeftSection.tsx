@@ -1,13 +1,11 @@
 import { useState, useEffect, FC, Dispatch, SetStateAction } from "react";
-import { useDispatch } from "react-redux";
-import {
-  createNote,
-  editNote,
-  Note,
-  removeNote,
-} from "../store/slices/notesSlice";
-import { AppDispatch } from "../store";
+import { Note } from "../store/slices/notesSlice";
 import toast, { Toaster } from "react-hot-toast";
+import {
+  useCreateNote,
+  useDeleteNote,
+  useUpdateNote,
+} from "../api/graphqlClient";
 
 type LeftSectionProps = {
   activeNote: Note | null;
@@ -18,14 +16,13 @@ export const LeftSection: FC<LeftSectionProps> = ({
   activeNote,
   setActiveNote,
 }) => {
-  const dispatch = useDispatch<AppDispatch>();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [processing, setProcessing] = useState<
     "create" | "update" | "delete" | null
   >(null);
 
-  // ✅ Detect when activeNote changes (for editing mode)
+  // ✅ Sync title and content with the active note
   useEffect(() => {
     if (activeNote) {
       setTitle(activeNote.title || "");
@@ -36,13 +33,17 @@ export const LeftSection: FC<LeftSectionProps> = ({
     }
   }, [activeNote]);
 
+  const createNote = useCreateNote();
+  const updateNote = useUpdateNote();
+  const deleteNote = useDeleteNote();
+
   // ✅ Handle Creating a New Note
   const handleCreateNote = async () => {
     if (!title.trim() || !content.trim()) return;
-
     setProcessing("create");
+
     try {
-      await dispatch(createNote({ title, content })).unwrap();
+      await createNote.mutateAsync({ title, content });
       toast.success("Note created successfully!", { id: "create" });
       setActiveNote(null); // Reset after creating
       setTitle("");
@@ -55,37 +56,31 @@ export const LeftSection: FC<LeftSectionProps> = ({
     }
   };
 
-  // ✅ Handle Updating an Existing Note
+  // ✅ Handle Updating a Note
   const handleUpdateNote = async () => {
-    if (activeNote && content.trim()) {
-      setProcessing("update");
-      toast.loading("Updating note...", { id: "update" });
+    if (!activeNote) return;
+    setProcessing("update");
 
-      try {
-        await dispatch(
-          editNote({ noteId: activeNote.id, title, content })
-        ).unwrap();
-        toast.success("Note updated successfully!", { id: "update" });
-      } catch (error) {
-        console.error("Failed to update note.", error);
-        toast.error("Failed to update note.", { id: "update" });
-      } finally {
-        setProcessing(null);
-      }
+    try {
+      await updateNote.mutateAsync({ id: activeNote.id, title, content });
+      toast.success("Note updated successfully!", { id: "update" });
+    } catch (error) {
+      console.error("Failed to update note.", error);
+      toast.error("Failed to update note.", { id: "update" });
+    } finally {
+      setProcessing(null);
     }
   };
 
   // ✅ Handle Deleting a Note
   const handleDeleteNote = async () => {
     if (!activeNote) return;
-
     setProcessing("delete");
-    toast.loading("Deleting note...", { id: "delete" });
 
     try {
-      await dispatch(removeNote(activeNote.id)).unwrap();
+      await deleteNote.mutateAsync(activeNote.id);
       toast.success("Note deleted successfully!", { id: "delete" });
-      setActiveNote(null); // Clear activeNote after deletion
+      setActiveNote(null); // Clear after delete
       setTitle("");
       setContent("");
     } catch (error) {
@@ -126,7 +121,6 @@ export const LeftSection: FC<LeftSectionProps> = ({
         />
 
         <div className="flex gap-2">
-          {/* ✅ If there's an active note, show update/delete buttons */}
           {activeNote ? (
             <>
               <button
@@ -154,7 +148,6 @@ export const LeftSection: FC<LeftSectionProps> = ({
             </>
           ) : (
             <>
-              {/* ✅ If creating a new note, show Save & Cancel */}
               <button
                 className={`flex-1 px-4 py-2 rounded shadow ${
                   processing === "create"
@@ -168,7 +161,7 @@ export const LeftSection: FC<LeftSectionProps> = ({
               </button>
               <button
                 className="flex-1 px-4 py-2 bg-gray-500 text-white rounded shadow hover:bg-gray-600"
-                onClick={() => setActiveNote(null)} // Cancel new note creation
+                onClick={() => setActiveNote(null)}
                 disabled={processing !== null}
               >
                 Cancel
