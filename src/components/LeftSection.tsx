@@ -100,8 +100,7 @@ export const LeftSection: FC<LeftSectionProps> = ({
     <div className="flex-1 flex flex-col border rounded-lg p-6 text-white shadow-lg">
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* ✅ "New Note" button (only visible when NOT editing) */}
-      {!activeNote && (
+      {activeNote && (
         <button
           className="mb-4 px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600"
           onClick={() => setActiveNote(null)}
