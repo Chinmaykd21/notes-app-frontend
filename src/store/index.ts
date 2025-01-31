@@ -9,6 +9,7 @@ const store = configureStore({
   reducer: {
     notes: notesReducer, // Register the "notes" slice in the Redux Store
   },
+  devTools: import.meta.env.MODE !== "production",
 });
 
 export type RootState = ReturnType<typeof store.getState>; // Type of overall state
