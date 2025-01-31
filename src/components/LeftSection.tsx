@@ -3,6 +3,7 @@ import { Editor } from "./Editor";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store";
 import { createNote } from "../store/slices/notesSlice";
+import toast, { Toaster } from "react-hot-toast";
 
 export const LeftSection = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,14 +23,17 @@ export const LeftSection = () => {
       setIsCreating(false);
       setNewNoteTitle("");
       setNewNoteContent("");
+      toast.success("Note created successfully", { id: "create" });
     } catch (error) {
       console.error("Failed to create the note: ", error);
+      toast.error("Failed to create the note", { id: "create" });
     }
     setIsSaving(false);
   };
 
   return (
     <div className="flex-1 flex flex-col border rounded-lg p-6  text-white shadow-lg">
+      <Toaster position="top-right" reverseOrder={false} />
       {/* ✅ "New Note" button sits above everything in the left section */}
       {!isCreating && (
         <button
