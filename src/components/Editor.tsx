@@ -68,25 +68,25 @@ export const Editor = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6">
+    <div className="flex-1 flex flex-col">
       <Toaster position="top-right" reverseOrder={false} />
       {activeNote ? (
         <>
           <input
             type="text"
-            className="w-full p-2 border rounded text-black"
+            className="w-full p-2 border rounded text-black mb-2"
             value={localTitle}
             onChange={handleTitleChange}
           />
           <textarea
-            className="w-full h-full p-4 border rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
+            className="w-full h-80 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
             value={localContent}
             onChange={handleContentChange}
           />
           <div className="mt-4 flex gap-2">
             <button
               onClick={handleUpdateNote}
-              className={`px-4 py-2 rounded ${
+              className={`flex-1 px-4 py-2 rounded ${
                 processing === "update"
                   ? "bg-yellow-500 cursor-not-allowed"
                   : "bg-yellow-400 hover:bg-yellow-500"
@@ -97,7 +97,7 @@ export const Editor = () => {
             </button>
             <button
               onClick={handleDeleteNote}
-              className={`px-4 py-2 rounded ${
+              className={`flex-1 px-4 py-2 rounded ${
                 processing === "delete"
                   ? "bg-red-500 cursor-not-allowed"
                   : "bg-red-400 hover:bg-red-500"

@@ -68,7 +68,7 @@ function App() {
               />
               <div className="flex gap-2">
                 <button
-                  className={`px-4 py-2 rounded shadow ${
+                  className={`flex-1 px-4 py-2 rounded shadow ${
                     isSaving
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-blue-500 hover:bg-blue-600 text-white"
@@ -79,7 +79,7 @@ function App() {
                   {isSaving ? "Saving..." : "Save Note"}
                 </button>
                 <button
-                  className="px-4 py-2 bg-gray-500 text-white rounded shadow hover:bg-gray-600"
+                  className="flex-1 px-4 py-2 bg-gray-500 text-white rounded shadow hover:bg-gray-600"
                   onClick={() => setIsCreating(false)}
                   disabled={isSaving}
                 >
