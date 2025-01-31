@@ -59,7 +59,7 @@ export const editNote = createAsyncThunk(
     content: string;
   }) => {
     await updateNote(noteId, title, content);
-    return { noteId, content };
+    return { noteId, title, content };
   }
 );
 
@@ -102,9 +102,10 @@ const notesSlice = createSlice({
         state.list.push(action.payload);
       })
       .addCase(editNote.fulfilled, (state, action) => {
-        const note = state.list.find((n) => n.id === action.payload.noteId);
-        if (note) {
-          note.content = action.payload.content;
+        const { noteId, title, content } = action.payload;
+        const noteIndex = state.list.findIndex((note) => note.id === noteId);
+        if (noteIndex !== -1) {
+          state.list[noteIndex] = { ...state.list[noteIndex], title, content };
         }
       })
       .addCase(removeNote.fulfilled, (state, action) => {
