@@ -1,19 +1,27 @@
+import { useSelector } from "react-redux";
 import { LeftSection } from "./components/LeftSection";
 import { Navigation } from "./components/Navigation";
-import { RightSection } from "./components/RightSection";
+import { RootState } from "./store";
+import { useState } from "react";
+import { Sidebar } from "./components/Sidebar";
+import { Note } from "./store/slices/notesSlice";
 
 function App() {
+  const notes = useSelector((state: RootState) => state.notes.list);
+  const [activeNote, setActiveNote] = useState<Note | null>(null);
+
   return (
     <div className="min-h-screen flex flex-col p-10">
-      {/* Top Navigation - App Title */}
       <Navigation title="Real-Time Collaborative Notes Application" />
-
-      {/* Main Content Layout */}
       <div className="flex flex-1 gap-6">
-        <LeftSection />
+        <LeftSection activeNote={activeNote} setActiveNote={setActiveNote} />
         {/* Divider */}
         <div className="w-[3px] bg-gray-300 rounded"></div>
-        <RightSection />
+        <Sidebar
+          notes={notes}
+          activeNote={activeNote}
+          setActiveNote={setActiveNote}
+        />
       </div>
     </div>
   );
