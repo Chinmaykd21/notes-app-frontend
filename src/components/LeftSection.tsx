@@ -27,6 +27,17 @@ export const LeftSection: FC<LeftSectionProps> = ({
 
   // ✅ Sync title and content with the active note
   useEffect(() => {
+    ws.onMessage((message) => {
+      if (
+        message.type === "note_update" &&
+        activeNote?.id === message.note.id
+      ) {
+        console.log("📩 WebSocket Update Received:", message);
+        setTitle(message.note.title);
+        setContent(message.note.content);
+      }
+    });
+
     if (activeNote) {
       setTitle(activeNote.title || "");
       setContent(activeNote.content || "");
