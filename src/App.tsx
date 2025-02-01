@@ -3,14 +3,14 @@ import { Navigation } from "./components/Navigation";
 import { useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Note } from "./api/graphqlClient";
-import { WebSocketService } from "./utils/websocket";
+import { WebSocketService, WS_URL } from "./utils/websocket";
+
+const ws = WebSocketService.getInstance(WS_URL);
 
 function App() {
   const [activeNote, setActiveNote] = useState<Note | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocketService();
-
     ws.connect();
 
     return () => ws.disconnect();

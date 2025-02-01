@@ -47,6 +47,7 @@ export class WebSocketService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   send(data: any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log("Sending data", data);
       this.socket.send(JSON.stringify(data));
     } else {
       console.error("Cannot send message: WebSocket is not connected or open.");
