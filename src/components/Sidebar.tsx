@@ -1,6 +1,9 @@
 import { FC, Dispatch, SetStateAction, useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useFetchNotes, useFetchNoteById, Note } from "../api/graphqlClient";
+import { WebSocketService, WS_URL } from "../utils/websocket";
+
+const ws = WebSocketService.getInstance(WS_URL);
 
 type SidebarProps = {
   activeNote: Note | null;
@@ -10,6 +13,7 @@ type SidebarProps = {
 export const Sidebar: FC<SidebarProps> = ({ activeNote, setActiveNote }) => {
   const { data, isLoading } = useFetchNotes();
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   // ✅ Fetch selected note details when selectedNoteId changes
   const { data: noteData, isFetching } = useFetchNoteById(
@@ -27,6 +31,35 @@ export const Sidebar: FC<SidebarProps> = ({ activeNote, setActiveNote }) => {
     }
   }, [noteData, selectedNoteId, setActiveNote]);
 
+  // Set notes initially
+  useEffect(() => {
+    if (data?.notes) {
+      setNotes(data.notes);
+    }
+  }, [data]);
+
+  // ✅ Listen for WebSocket updates (real-time changes)
+  useEffect(() => {
+    ws.onMessage((message) => {
+      if (message.type === "note_create") {
+        // ✅ Add the new note to the list
+        setNotes((prevNotes) => [message.note, ...prevNotes]);
+      } else if (message.type === "note_update") {
+        // ✅ Update the existing note
+        setNotes((prevNotes) =>
+          prevNotes.map((note) =>
+            note.id === message.note.id ? message.note : note
+          )
+        );
+      } else if (message.type === "note_delete") {
+        // ✅ Remove the deleted note
+        setNotes((prevNotes) =>
+          prevNotes.filter((note) => note.id !== message.noteId)
+        );
+      }
+    });
+  }, []);
+
   const handleLoadNote = (note: Note) => {
     if (activeNote?.id === note.id) return; // Prevent reloading the same note
     setSelectedNoteId(note.id); // ✅ Set note ID to trigger fetching
@@ -40,7 +73,7 @@ export const Sidebar: FC<SidebarProps> = ({ activeNote, setActiveNote }) => {
       </div>
     );
 
-  if (!data?.notes || data.notes.length === 0) {
+  if (notes.length === 0) {
     return (
       <div className="w-80 flex items-center justify-center border rounded-lg shadow-lg">
         No Notes To Display
@@ -53,7 +86,7 @@ export const Sidebar: FC<SidebarProps> = ({ activeNote, setActiveNote }) => {
       <aside className="w-80 h-screen overflow-y-auto p-4">
         <Toaster position="top-right" reverseOrder={false} />
         <div className="space-y-2">
-          {data.notes.map((note) => (
+          {notes.map((note) => (
             <div
               key={note.id}
               className={`p-3 bg-white rounded shadow flex flex-col items-start w-full gap-5 ${

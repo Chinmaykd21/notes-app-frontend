@@ -1,11 +1,20 @@
 import { LeftSection } from "./components/LeftSection";
 import { Navigation } from "./components/Navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Note } from "./api/graphqlClient";
+import { WebSocketService } from "./utils/websocket";
 
 function App() {
   const [activeNote, setActiveNote] = useState<Note | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocketService();
+
+    ws.connect();
+
+    return () => ws.disconnect();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col p-10">

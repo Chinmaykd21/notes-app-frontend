@@ -6,6 +6,9 @@ import {
   useDeleteNote,
   useUpdateNote,
 } from "../api/graphqlClient";
+import { WebSocketService, WS_URL } from "../utils/websocket";
+
+const ws = WebSocketService.getInstance(WS_URL);
 
 type LeftSectionProps = {
   activeNote: Note | null;
@@ -43,7 +46,14 @@ export const LeftSection: FC<LeftSectionProps> = ({
     setProcessing("create");
 
     try {
-      await createNote.mutateAsync({ title, content });
+      const newNote = await createNote.mutateAsync({ title, content });
+
+      // Send update via WebSocket
+      ws.send({
+        type: "note_create",
+        note: newNote,
+      });
+
       toast.success("Note created successfully!", { id: "create" });
       setActiveNote(null); // Reset after creating
       setTitle("");
@@ -63,6 +73,13 @@ export const LeftSection: FC<LeftSectionProps> = ({
 
     try {
       await updateNote.mutateAsync({ id: activeNote.id, title, content });
+
+      // Send update over WebSocket
+      ws.send({
+        type: "note_update",
+        note: { id: activeNote.id, title, content },
+      });
+
       toast.success("Note updated successfully!", { id: "update" });
     } catch (error) {
       console.error("Failed to update note.", error);
@@ -79,6 +96,13 @@ export const LeftSection: FC<LeftSectionProps> = ({
 
     try {
       await deleteNote.mutateAsync(activeNote.id);
+
+      // Send update over WebSocket
+      ws.send({
+        type: "note_delete",
+        noteId: activeNote.id,
+      });
+
       toast.success("Note deleted successfully!", { id: "delete" });
       setActiveNote(null); // Clear after delete
       setTitle("");
@@ -92,7 +116,7 @@ export const LeftSection: FC<LeftSectionProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col border rounded-lg p-6 text-white shadow-lg">
+    <div className="flex-1 flex flex-col border rounded-lg p-6">
       <Toaster position="top-right" reverseOrder={false} />
 
       {activeNote && (
@@ -105,7 +129,7 @@ export const LeftSection: FC<LeftSectionProps> = ({
       )}
 
       {/* ✅ Form for Editing OR Creating */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 h-full">
         <input
           type="text"
           placeholder="Enter note title"
@@ -117,7 +141,7 @@ export const LeftSection: FC<LeftSectionProps> = ({
           placeholder="Enter note content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="p-2 border rounded h-80 text-black"
+          className="p-2 border rounded text-black h-full"
         />
 
         <div className="flex gap-2">
