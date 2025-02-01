@@ -59,6 +59,7 @@ export class WebSocketService {
   onMessage(callback: (data: any) => void): void {
     if (this.socket) {
       this.socket.onmessage = (event) => {
+        console.log("Data received - ", event.data);
         callback(JSON.parse(event.data));
       };
     }
