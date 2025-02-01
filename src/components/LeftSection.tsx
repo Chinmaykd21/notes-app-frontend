@@ -33,8 +33,15 @@ export const LeftSection: FC<LeftSectionProps> = ({
         activeNote?.id === message.note.id
       ) {
         console.log("📩 WebSocket Update Received:", message);
-        setTitle(message.note.title);
-        setContent(message.note.content);
+        setTitle((prev) => {
+          console.log("🔄 Updating title:", prev, "➡", message.note.title);
+          return message.note.title;
+        });
+
+        setContent((prev) => {
+          console.log("🔄 Updating content:", prev, "➡", message.note.content);
+          return message.note.content;
+        });
       }
     });
 

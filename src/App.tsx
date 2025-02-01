@@ -13,6 +13,8 @@ function App() {
   useEffect(() => {
     ws.connect();
 
+    console.log("Websocket connected successfully");
+
     return () => ws.disconnect();
   }, []);
 
