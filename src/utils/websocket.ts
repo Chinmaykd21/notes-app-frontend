@@ -25,6 +25,7 @@ export class WebSocketService {
 
     this.socket.onopen = () => {
       console.log("Websocket connected.");
+      this.send({ type: "test_message", content: "Hello from frontend" });
     };
 
     this.socket.onclose = () => {
