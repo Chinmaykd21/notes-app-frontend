@@ -1,4 +1,4 @@
-import { FC, Dispatch, SetStateAction, useState } from "react";
+import { FC, Dispatch, SetStateAction, useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useFetchNotes, useFetchNoteById, Note } from "../api/graphqlClient";
 
@@ -14,35 +14,38 @@ export const Sidebar: FC<SidebarProps> = ({ activeNote, setActiveNote }) => {
   // ✅ Fetch selected note details when selectedNoteId changes
   const { data: noteData, isFetching } = useFetchNoteById(
     selectedNoteId ?? "",
-    {
-      enabled: !!selectedNoteId, // ✅ Only fetch if `selectedNoteId` is set
-    }
+    { enabled: !!selectedNoteId }
   );
+
+  // ✅ Set active note when data is available (Avoid setting state inside render)
+  useEffect(() => {
+    if (noteData?.noteById && selectedNoteId === noteData.noteById.id) {
+      setActiveNote(noteData.noteById);
+      toast.dismiss();
+      toast.success("Note loaded successfully!", { id: selectedNoteId });
+      setSelectedNoteId(null); // ✅ Reset after loading
+    }
+  }, [noteData, selectedNoteId, setActiveNote]);
 
   const handleLoadNote = (note: Note) => {
     if (activeNote?.id === note.id) return; // Prevent reloading the same note
     setSelectedNoteId(note.id); // ✅ Set note ID to trigger fetching
-
     toast.loading("Loading note...", { id: note.id });
   };
 
-  // ✅ When noteData is available, update `activeNote`
-  if (
-    noteData &&
-    noteData.noteById &&
-    selectedNoteId === noteData.noteById.id
-  ) {
-    setActiveNote(noteData.noteById);
-    toast.dismiss();
-    toast.success("Note loaded successfully!", { id: selectedNoteId });
-    setSelectedNoteId(null); // ✅ Reset selection after setting active note
-  }
-
   if (isLoading)
-    return <div className="flex justify-center">Loading Notes...</div>;
+    return (
+      <div className="w-80 flex items-center justify-center border rounded-lg shadow-lg">
+        Loading Notes...
+      </div>
+    );
 
-  if (!data || !data.notes || data.notes.length === 0) {
-    return <div className="flex justify-center">No Notes To Display</div>;
+  if (!data?.notes || data.notes.length === 0) {
+    return (
+      <div className="w-80 flex items-center justify-center border rounded-lg shadow-lg">
+        No Notes To Display
+      </div>
+    );
   }
 
   return (
