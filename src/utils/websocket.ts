@@ -1,5 +1,4 @@
 export const WS_URL = import.meta.env.VITE_WS_URL; // Use env variable for the WebSocket URL
-console.log("WS URL", WS_URL);
 
 export class WebSocketService {
   private static instance: WebSocketService | null = null;
@@ -25,7 +24,6 @@ export class WebSocketService {
 
     this.socket.onopen = () => {
       console.log("Websocket connected.");
-      this.send({ type: "test_message", content: "Hello from frontend" });
     };
 
     this.socket.onclose = () => {
@@ -48,7 +46,6 @@ export class WebSocketService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   send(data: any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      console.log("Sending data", data);
       this.socket.send(JSON.stringify(data));
     } else {
       console.error("Cannot send message: WebSocket is not connected or open.");
@@ -59,7 +56,6 @@ export class WebSocketService {
   onMessage(callback: (data: any) => void): void {
     if (this.socket) {
       this.socket.onmessage = (event) => {
-        console.log("Data received - ", event.data);
         callback(JSON.parse(event.data));
       };
     }
