@@ -33,15 +33,8 @@ export const LeftSection: FC<LeftSectionProps> = ({
         activeNote?.id === message.note.id
       ) {
         console.log("📩 WebSocket Update Received:", message);
-        setTitle((prev) => {
-          console.log("🔄 Updating title:", prev, "➡", message.note.title);
-          return message.note.title;
-        });
-
-        setContent((prev) => {
-          console.log("🔄 Updating content:", prev, "➡", message.note.content);
-          return message.note.content;
-        });
+        setTitle(message.note.title);
+        setContent(message.note.content);
       }
     });
 
@@ -57,38 +50,6 @@ export const LeftSection: FC<LeftSectionProps> = ({
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
-
-  // ✅ Handle Updating a Note
-  const handleUpdateNote = async () => {
-    if (!activeNote) return;
-    setProcessing("update");
-
-    try {
-      await updateNote.mutateAsync({ id: activeNote.id, title, content });
-
-      // Send update over WebSocket
-      ws.send({
-        type: "note_update",
-        note: { id: activeNote.id, title, content },
-      });
-
-      toast.success("Note updated successfully!", { id: "update" });
-    } catch (error) {
-      console.error("Failed to update note.", error);
-      toast.error("Failed to update note.", { id: "update" });
-    } finally {
-      setProcessing(null);
-    }
-  };
-
-  let autoSaveId: ReturnType<typeof setTimeout>;
-
-  const performAutoSave = () => {
-    clearTimeout(autoSaveId);
-    autoSaveId = setTimeout(() => {
-      handleUpdateNote();
-    }, 2000);
-  };
 
   // ✅ Handle Creating a New Note
   const handleCreateNote = async () => {
@@ -111,6 +72,29 @@ export const LeftSection: FC<LeftSectionProps> = ({
     } catch (error) {
       console.error("Failed to create note: ", error);
       toast.error("Failed to create note", { id: "create" });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  // ✅ Handle Updating a Note
+  const handleUpdateNote = async () => {
+    if (!activeNote) return;
+    setProcessing("update");
+
+    try {
+      await updateNote.mutateAsync({ id: activeNote.id, title, content });
+
+      // Send update over WebSocket
+      ws.send({
+        type: "note_update",
+        note: { id: activeNote.id, title, content },
+      });
+
+      toast.success("Note updated successfully!", { id: "update" });
+    } catch (error) {
+      console.error("Failed to update note.", error);
+      toast.error("Failed to update note.", { id: "update" });
     } finally {
       setProcessing(null);
     }
@@ -161,19 +145,13 @@ export const LeftSection: FC<LeftSectionProps> = ({
           type="text"
           placeholder="Enter note title"
           value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            performAutoSave();
-          }}
+          onChange={(e) => setTitle(e.target.value)}
           className="p-2 border rounded text-black"
         />
         <textarea
           placeholder="Enter note content"
           value={content}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            performAutoSave();
-          }}
+          onChange={(e) => setContent(e.target.value)}
           className="p-2 border rounded text-black h-full"
         />
 
