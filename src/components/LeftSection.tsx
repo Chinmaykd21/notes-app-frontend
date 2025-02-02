@@ -1,4 +1,11 @@
-import { useState, useEffect, FC, Dispatch, SetStateAction } from "react";
+import {
+  useState,
+  useEffect,
+  FC,
+  Dispatch,
+  SetStateAction,
+  useRef,
+} from "react";
 import toast, { Toaster } from "react-hot-toast";
 import {
   Note,
@@ -7,6 +14,7 @@ import {
   useUpdateNote,
 } from "../api/graphqlClient";
 import { WebSocketService, WS_URL } from "../utils/websocket";
+import { debounce } from "lodash";
 
 const ws = WebSocketService.getInstance(WS_URL);
 
@@ -25,15 +33,19 @@ export const LeftSection: FC<LeftSectionProps> = ({
     "create" | "update" | "delete" | null
   >(null);
 
-  // ✅ Sync title and content with the active note
+  // ✅ Sync title and content with the active note (WebSocket messages should NOT override typing)
   useEffect(() => {
     ws.onMessage((message) => {
       if (
         message.type === "note_update" &&
         activeNote?.id === message.note.id
       ) {
-        setTitle(message.note.title);
-        setContent(message.note.content);
+        setTitle((prev) =>
+          prev === message.note.title ? prev : message.note.title
+        );
+        setContent((prev) =>
+          prev === message.note.content ? prev : message.note.content
+        );
       }
     });
 
@@ -46,8 +58,32 @@ export const LeftSection: FC<LeftSectionProps> = ({
     }
   }, [activeNote]);
 
-  const createNote = useCreateNote();
   const updateNote = useUpdateNote();
+
+  const debouncedAutoSave = useRef(
+    debounce(async (noteId, title, content) => {
+      if (!noteId) return;
+      console.log("💾 Auto-saving note..."); // ✅ Should now log
+
+      await updateNote.mutateAsync({ id: noteId, title, content });
+
+      ws.send({
+        type: "note_update",
+        note: { id: noteId, title, content },
+      });
+
+      toast.success("Auto-saved!", { id: "autosave" });
+    }, 2000) // ✅ Triggers after 2 seconds
+  ).current;
+
+  // ✅ Cleanup debounce when component unmounts
+  useEffect(() => {
+    return () => {
+      debouncedAutoSave.cancel();
+    };
+  }, [debouncedAutoSave]);
+
+  const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
 
   // ✅ Handle Updating a Note
@@ -72,15 +108,6 @@ export const LeftSection: FC<LeftSectionProps> = ({
       setProcessing(null);
     }
   };
-
-  // let autoSaveId: ReturnType<typeof setTimeout>;
-
-  // const performAutoSave = () => {
-  //   clearTimeout(autoSaveId);
-  //   autoSaveId = setTimeout(() => {
-  //     handleUpdateNote();
-  //   }, 3000);
-  // };
 
   // ✅ Handle Creating a New Note
   const handleCreateNote = async () => {
@@ -134,6 +161,17 @@ export const LeftSection: FC<LeftSectionProps> = ({
     }
   };
 
+  // ✅ Handle User Input With Auto-Save
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    if (activeNote) debouncedAutoSave(activeNote.id, e.target.value, content);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+    if (activeNote) debouncedAutoSave(activeNote.id, title, e.target.value);
+  };
+
   return (
     <div className="flex-1 flex flex-col border rounded-lg p-6">
       <Toaster position="top-right" reverseOrder={false} />
@@ -153,19 +191,13 @@ export const LeftSection: FC<LeftSectionProps> = ({
           type="text"
           placeholder="Enter note title"
           value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            // performAutoSave();
-          }}
+          onChange={handleTitleChange}
           className="p-2 border rounded text-black"
         />
         <textarea
           placeholder="Enter note content"
           value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
-            // performAutoSave();
-          }}
+          onChange={handleContentChange}
           className="p-2 border rounded text-black h-full"
         />
 
