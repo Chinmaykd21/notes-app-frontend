@@ -15,8 +15,11 @@ import {
 } from "../api/graphqlClient";
 import { WebSocketService, WS_URL } from "../utils/websocket";
 import { debounce } from "lodash";
+import { LeftSectionHeader } from "./LeftSectionHeader";
+import { generateGuestUsername } from "../utils/userUtils";
 
-const ws = WebSocketService.getInstance(WS_URL);
+const username = generateGuestUsername();
+const ws = WebSocketService.getInstance(username, WS_URL);
 
 type LeftSectionProps = {
   activeNote: Note | null;
@@ -176,14 +179,7 @@ export const LeftSection: FC<LeftSectionProps> = ({
     <div className="flex-1 flex flex-col border rounded-lg p-6">
       <Toaster position="top-right" reverseOrder={false} />
 
-      {activeNote && (
-        <button
-          className="mb-4 px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600"
-          onClick={() => setActiveNote(null)}
-        >
-          New Note
-        </button>
-      )}
+      <LeftSectionHeader />
 
       {/* ✅ Form for Editing OR Creating */}
       <div className="flex flex-col gap-4 h-full">

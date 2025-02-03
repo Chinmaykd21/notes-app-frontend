@@ -1,17 +1,20 @@
-export const WS_URL = import.meta.env.VITE_WS_URL; // Use env variable for the WebSocket URL
+export const WS_URL = import.meta.env.VITE_WS_URL.replace(/\/$/, ""); // ✅ Remove trailing slashes if any
 
 export class WebSocketService {
   private static instance: WebSocketService | null = null;
   private socket: WebSocket | null = null;
+  private username: string;
   private readonly url: string;
 
-  constructor(url: string = WS_URL) {
-    this.url = url;
+  constructor(username: string, url: string = WS_URL) {
+    this.username = username;
+    this.url = `${url}?username=${encodeURIComponent(username)}`; // ✅ Append username to WebSocket URL
+    console.log("connecting to websocket: ", this.url);
   }
 
-  static getInstance(url: string): WebSocketService {
+  static getInstance(username: string, url: string): WebSocketService {
     if (!WebSocketService.instance) {
-      WebSocketService.instance = new WebSocketService(url);
+      WebSocketService.instance = new WebSocketService(username, url);
     }
     return WebSocketService.instance;
   }
@@ -23,7 +26,7 @@ export class WebSocketService {
     }
 
     this.socket.onopen = () => {
-      console.log("Websocket connected.");
+      console.log("Websocket connected as a ", this.username);
     };
 
     this.socket.onclose = () => {
